@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>مطعم العائلة</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <style>
+    :root{--ink:#2f201b;--brand:#712714;--accent:#c64920;--orange:#f4a443;--paper:#fffdf9;--soft:#f6eee7;--muted:#887b74;--line:#eee4dc}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Tajawal,sans-serif;padding-bottom:94px}button,input,select{font:inherit}button{border:0;cursor:pointer}.app{max-width:1180px;margin:auto;min-height:100vh}
+    .topbar{height:76px;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:#fff;border-bottom:1px solid var(--line)}.brand{display:flex;gap:11px;align-items:center;font-weight:900;font-size:1.1rem}.brand img{width:46px;height:46px;object-fit:contain;border-radius:50%;border:1px solid var(--line);background:#fff}
+    main{padding:28px 24px 40px}.view{display:none}.view.active{display:block;animation:appear .28s ease-out}@keyframes appear{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}.welcome{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}.eyebrow{color:var(--accent);font-weight:800;font-size:.82rem;margin:0 0 4px}h1,h2,h3,p{margin:0}h1{font-size:clamp(1.45rem,3vw,2.1rem);font-weight:900}.small{color:var(--muted);margin-top:5px}.language{color:var(--brand);background:transparent;font-weight:800;padding:8px}
+    .hero{min-height:315px;overflow:hidden;border-radius:8px;position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--brand);color:#fff}.hero-copy{padding:42px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}.hero-copy p{color:#fbdcc8;font-size:.95rem;font-weight:700}.hero-copy h2{font-size:clamp(1.8rem,4vw,3.3rem);line-height:1.1;margin:9px 0 16px;font-weight:900}.hero-copy button{background:#fff;color:var(--brand);padding:12px 20px;border-radius:5px;font-weight:900}.hero-art{position:relative;background:var(--orange);overflow:hidden;display:grid;place-items:center}.hero-art:before{content:"";position:absolute;width:130%;height:75%;bottom:-30%;right:-22%;border-radius:50%;background:#d45b2c}.hero-art img{width:min(70%,260px);max-height:220px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 20px 14px rgba(53,20,8,.25))}.hero-art span{position:absolute;bottom:22px;left:24px;font-size:.76rem;font-weight:800;color:#fff4e9;z-index:1}
+    .head{display:flex;align-items:center;justify-content:space-between;margin:38px 0 16px}.head h2{font-size:1.24rem;font-weight:900}.head button{background:transparent;color:var(--brand);font-weight:800}    .categories{padding:2px 0 4px}.category{min-width:0;background:#fff;border:1px solid var(--line);border-radius:6px;padding:13px 9px;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:800;line-height:1.4;text-align:center}.category i{color:var(--brand);font-size:1.2rem}.category.active{background:var(--brand);color:#fff;border-color:var(--brand)}.category.active i{color:#fff}
+    /* الأكثر مبيعاً: بطاقة بين الأقسام */
+    /* بدون اختيار قسم: مربعات عمودية ٢×٢ */
+    .cats-vert{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .cats-vert .category{min-height:108px;justify-content:center;padding:16px 10px;gap:10px}
+    .cats-vert .category i{font-size:1.9rem}
+    /* بعد اختيار قسم: صف أفقي واحد ينزلق */
+    .cats-cards{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(126px,1fr);gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px}
+    .cats-cards::-webkit-scrollbar{display:none}
+    .cats-cards .category{min-height:108px;justify-content:center;padding:16px 10px;gap:10px}
+    .cats-cards .category i{font-size:1.9rem}
+    @media(max-width:620px){
+      .cats-cards .category{min-height:96px;padding:14px 8px;gap:8px;font-size:.9rem}
+      .cats-cards .category i{font-size:1.6rem}
+    }
+
+
+    .products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.product{min-width:0;background:#fff;border:1px solid var(--line);border-radius:7px;overflow:hidden}.art{height:152px;background:var(--soft);display:grid;place-items:center;overflow:hidden}.art img{width:100%;height:100%;object-fit:cover}.placeholder{color:#c5a18c;display:flex;flex-direction:column;gap:6px;align-items:center;font-size:.76rem;font-weight:800}.placeholder i{font-size:1.9rem;color:var(--orange)}.product-body{padding:14px}.name{font-size:1rem;font-weight:900;min-height:28px}.desc{color:var(--muted);font-size:.78rem;line-height:1.45;margin-top:3px;min-height:33px}.footer{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:13px}    .price{color:var(--brand);font-weight:900}
+    .pick-size{font-style:normal;font-size:.86rem;color:var(--accent);display:inline-flex;align-items:center;gap:6px}
+.add{width:34px;height:34px;border-radius:50%;background:var(--brand);color:white;display:grid;place-items:center}
+    .page-heading{display:flex;gap:14px;align-items:center;margin:4px 0 25px}.page-heading h2{font-size:1.45rem;font-weight:900}.back{width:42px;height:42px;border-radius:50%;background:var(--soft);color:var(--brand)}.branch-picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:22px}.branch-picker button{padding:13px 8px;background:#fff;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-weight:900}.branch-picker button.active{color:#fff;background:var(--brand);border-color:var(--brand)}.tabs{display:flex;overflow-x:auto;gap:10px;padding-bottom:14px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tabs button{white-space:nowrap;padding:10px 16px;border-radius:5px;color:var(--muted);background:#fff;border:1px solid var(--line);font-weight:800}.tabs button.active{background:var(--brand);color:#fff;border-color:var(--brand)}.branch-empty{grid-column:1/-1;text-align:center;padding:42px 20px;background:#fff;border:1px dashed #d8b49e;border-radius:7px;color:var(--muted)}.branch-empty i{display:block;color:var(--orange);font-size:2rem;margin-bottom:12px}.branch-empty h3{color:var(--ink);margin-bottom:6px}.info-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.info{background:#fff;border:1px solid var(--line);border-radius:7px;padding:22px}.info h3{font-weight:900;margin-bottom:8px}.info p{color:var(--muted);line-height:1.65}    .info a{display:inline-flex;align-items:center;gap:7px;margin-top:16px;color:var(--brand);font-weight:900;text-decoration:none}.info a+a{margin-right:18px}
+
+    .nav{position:fixed;z-index:20;bottom:0;left:0;right:0;display:flex;justify-content:center;background:#fff;border-top:1px solid var(--line)}.nav-inner{width:min(1180px,100%);display:grid;grid-template-columns:repeat(5,1fr)}.nav-item{min-height:74px;display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;background:transparent;color:#897d75;font-size:.75rem;font-weight:800}.nav-item i{font-size:1.1rem}.nav-item.active{color:var(--brand);background:#f4e8df}.cart-button{position:fixed;z-index:25;bottom:88px;left:24px;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:#fff;box-shadow:0 10px 22px rgba(121,39,17,.28)}.cart-count{position:absolute;top:-4px;right:-3px;width:21px;height:21px;border-radius:50%;display:grid;place-items:center;background:var(--orange);color:var(--ink);font-size:.72rem;font-weight:900;border:2px solid #fff}
+    .sheet{position:fixed;inset:0;z-index:30;display:none;align-items:end;background:rgba(30,19,14,.38)}.sheet.open{display:flex}.sheet-card{background:#fff;width:100%;max-height:88vh;overflow:auto;border-radius:12px 12px 0 0;padding:22px max(20px,calc((100vw - 780px)/2))}.sheet-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.close{width:36px;height:36px;border-radius:50%;background:var(--soft);color:var(--brand)}.cart-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.cart-row strong{display:block}.cart-row small{color:var(--muted)}.cart-qty{display:flex;align-items:center;gap:10px}.cart-qty b{min-width:22px;text-align:center}.qty-btn{width:28px;height:28px;border-radius:50%;background:var(--soft);color:var(--brand);font-weight:900;display:grid;place-items:center}.delete{color:var(--accent);background:transparent;font-size:1rem;padding:9px}.total{display:flex;align-items:center;justify-content:space-between;margin:20px 0 15px;font-weight:900;font-size:1.13rem}.type-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:13px}.type-tabs button{padding:11px 6px;background:var(--soft);color:var(--muted);border-radius:5px;font-weight:800}.type-tabs button.active{background:var(--brand);color:#fff}.form input,.form select{width:100%;padding:13px;margin-bottom:9px;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--ink)}.checkout{width:100%;padding:15px;background:#1d9b57;color:#fff;border-radius:5px;font-weight:900;font-size:1rem}    .checkout.busy{opacity:.6;pointer-events:none}.checkout:disabled{opacity:.45;pointer-events:none}
+    .fee-note{display:flex;align-items:center;justify-content:center;gap:7px;margin:12px 0 0;color:var(--muted);font-size:.8rem;font-weight:800;text-align:center}
+.checkout.alt{background:#25d366}.empty{text-align:center;color:var(--muted);padding:26px 0}
+    .toast{position:fixed;z-index:60;bottom:100px;right:50%;transform:translateX(50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:6px;font-weight:800;font-size:.86rem;opacity:0;pointer-events:none;transition:opacity .25s}.toast.show{opacity:1}.offline{background:#fde8e4;color:var(--accent);padding:11px 16px;border-radius:6px;font-weight:800;font-size:.82rem;margin-bottom:18px;display:none}.offline.show{display:block}
+    .opt-group{margin-bottom:16px}.opt-group>strong{display:block;margin-bottom:9px;font-size:.92rem}.opt-hint{color:var(--muted);font-size:.76rem;font-weight:700;margin-right:6px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:5px;background:#fff;border:1px solid var(--line);color:var(--ink);font-weight:800;font-size:.86rem}.chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}.chip small{color:var(--muted);font-weight:800}.chip.on small{color:#fbdcc8}.opt-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 0 14px}.opt-total{font-weight:900;font-size:1.05rem;color:var(--brand)}
+    @media(max-width:700px){.topbar{padding:10px 16px}main{padding:22px 16px 30px}.hero{grid-template-columns:1fr;min-height:430px}.hero-copy{min-height:220px;padding:30px 24px}.hero-art{min-height:210px;grid-row:1}.hero-art img{max-height:175px}.products{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.art{height:126px}.product-body{padding:11px}.name{font-size:.91rem}.desc{font-size:.72rem}.info-list{grid-template-columns:1fr}.branch-picker{grid-template-columns:1fr}.cart-button{left:16px;bottom:84px}}
+
+    /* الأصناف: نفس الترتيب الأصلي — ٣ بكل صف بالكمبيوتر و٢ بالموبايل */
+    .product .desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><a href="index.html" style="display:flex;gap:11px;align-items:center;color:inherit;text-decoration:none;font-weight:900;font-size:1.1rem"><img src="logo.png" alt="شعار المطعم"><span id="brandName">مطعم العائلة</span></a></div>
+    </header>
+    <main>
+      <div class="offline" id="offlineBar">تعذر الاتصال بقاعدة البيانات. نعرض آخر نسخة محفوظة على الجهاز.</div>
+
+      <section id="homeView" class="view active">
+        <div class="welcome">
+          <div><p class="eyebrow" id="heroBadge">مرحبا بك</p><h1>شنو تحب تطلب اليوم؟</h1><p class="small" id="heroText">اختار أكلك المفضل وخلي الباقي علينا.</p></div>
+          <button class="language">العربية</button>
+        </div>
+        <article class="hero">
+          <div class="hero-copy"><p id="heroBrand">مطعم العائلة</p><h2 id="heroTitle">الطعم اللي يجمع العائلة</h2><button onclick="showView('menu')" id="heroCta">شوف المنيو</button></div>
+          <div class="hero-art"><img src="logo.png" alt="صورة عرض"><span>مكان مثالي لصورة 3D أو صورة عرض</span></div>
+        </article>
+        <div class="head"><h2>اختار القسم</h2><button onclick="showView('menu')">المنيو كله</button></div>
+        <div id="homeCategories" class="categories cats-vert"></div>
+      </section>
+
+      <section id="menuView" class="view">
+        <div class="page-heading"><button class="back" onclick="goBack()" aria-label="رجوع"><i class="fa-solid fa-arrow-right"></i></button><h2>قائمة طعامنا</h2></div>
+        <div id="branchPicker" class="branch-picker"></div>
+        <div id="categories" class="categories"></div>
+        <div id="menuGrid" class="products"></div>
+      </section>
+
+      <section id="branchesView" class="view">
+        <div class="page-heading"><button class="back" onclick="showView('menu')" aria-label="رجوع"><i class="fa-solid fa-arrow-right"></i></button><h2>فروعنا</h2></div>
+        <div id="branchesList" class="info-list"></div>
+      </section>
+
+      <section id="aboutView" class="view">
+        <div class="page-heading"><button class="back" onclick="showView('menu')" aria-label="رجوع"><i class="fa-solid fa-arrow-right"></i></button><h2>من نحن</h2></div>
+        <article class="info"><h3 id="aboutTitle">مطعم العائلة</h3><p id="aboutText"></p><a id="instagramLink" href="#" target="_blank" rel="noopener nofollow"><i class="fa-brands fa-instagram"></i>تابعنا على إنستغرام</a></article>
+      </section>
+    </main>
+  </div>
+
+  <button class="cart-button" onclick="openCart()" aria-label="فتح السلة"><i class="fa-solid fa-bag-shopping"></i><span id="cartCount" class="cart-count">0</span></button>
+
+  <nav class="nav"><div class="nav-inner">
+    <button class="nav-item active" id="navHome" data-view="home" onclick="showView('home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></button>
+    <button class="nav-item" data-view="menu" onclick="showView('menu')"><i class="fa-solid fa-utensils"></i><span>المنيو</span></button>
+    <button class="nav-item" data-view="branches" onclick="showView('branches')"><i class="fa-solid fa-location-dot"></i><span>فروعنا</span></button>
+    <button class="nav-item" data-view="about" onclick="showView('about')"><i class="fa-solid fa-circle-info"></i><span>من نحن</span></button>
+    <button class="nav-item" onclick="openCart()"><i class="fa-solid fa-bag-shopping"></i><span>السلة</span></button>
+  </div></nav>
+
+  <div id="cartSheet" class="sheet" onclick="closeFromOverlay(event)">
+    <div class="sheet-card">
+      <div class="sheet-title"><h2>سلتك</h2><button class="close" onclick="closeCart()" aria-label="إغلاق"><i class="fa-solid fa-xmark"></i></button></div>
+      <div id="cartItems"></div>
+      <div class="total"><span>المجموع</span><span id="totalPrice">0 د.ع</span></div>
+      <div class="type-tabs">
+        <button class="active" data-type="delivery" onclick="setType('delivery')">توصيل</button>
+        <button data-type="pickup" onclick="setType('pickup')">سفري</button>
+        <button data-type="dinein" onclick="setType('dinein')">صالة</button>
+      </div>
+      <div class="form">
+        <input id="customerName" placeholder="اسمك الكريم" autocomplete="name">
+        <input id="customerPhone" type="tel" placeholder="رقم الهاتف" autocomplete="tel">
+        <input id="customerAddress" placeholder="العنوان بالتفصيل">
+        <select id="branch"></select>
+      </div>
+      <button class="checkout alt" id="btnWhatsapp" onclick="sendWhatsapp()"><i class="fa-brands fa-whatsapp"></i> إرسال الطلب عبر واتساب</button>
+      <p class="fee-note" id="feeNote"><i class="fa-solid fa-truck"></i> أجور التوصيل غير مشمولة بالأسعار.</p>
+    </div>
+  </div>
+
+  <div id="optSheet" class="sheet" onclick="closeOptFromOverlay(event)">
+    <div class="sheet-card">
+      <div class="sheet-title"><h2 id="optTitle">اختر الخيارات</h2><button class="close" onclick="closeOptions()" aria-label="إغلاق"><i class="fa-solid fa-xmark"></i></button></div>
+      <div id="optSizes" class="opt-group"></div>
+      <div id="optExtras" class="opt-group"></div>
+      <div class="opt-foot"><span class="opt-total" id="optTotal">0 د.ع</span><button class="checkout" id="optAdd" onclick="confirmOptions()"><i class="fa-solid fa-bag-shopping"></i> إضافة للسلة</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="firebase-config.js"></script>
+  <script>
+    // كل فرع موقع مستقل: /amiriya أو ?site=amiriya (وأي معرّف جديد ينشئه الأدمن)
+    const SITES = window.FIREBASE_SITES || {};
+    const SITE_PARAM = String(new URLSearchParams(location.search).get('site') || '').trim().toLowerCase();
+    const SITE = (SITES[SITE_PARAM] && SITES[SITE_PARAM].doc)
+      || (SITE_PARAM ? 'family-' + SITE_PARAM.replace(/[^a-z0-9-]/g, '') : '')
+      || window.FIREBASE_DOCUMENT || 'family-restaurant';
+    const SINGLE_SITE = !!SITE_PARAM;
+    const ROOT = ['restaurantSites', SITE];
+    const FB_VERSION = '10.14.1';
+    const FALLBACK = 'https://www.gstatic.com/firebasejs/' + FB_VERSION;
+
+    // ---------- local cache (offline fallback) ----------
+    const CACHE_KEY = 'family-rest-cache-' + SITE + '-v1';
+    const CACHE_TTL = 1000 * 60 * 60 * 24 * 7;
+
+    const DEFAULTS = {
+      settings: {
+        restaurantName: 'مطعم العائلة',
+        tagline: 'الطعم اللي يجمع العائلة',
+        heroBadge: 'مرحبا بك',
+        heroText: 'اختار أكلك المفضل وخلي الباقي علينا.',
+        heroCta: 'شوف المنيو',
+        phoneDisplay: '07761600008',
+        phoneDial: '07761600008',
+        instagram: 'https://www.instagram.com/family.rest_?stkn=MXRlNGU3MnpxaDU5ZQ==',
+        aboutTitle: 'مطعم العائلة',
+        aboutText: 'نقدم وجبات طازجة للعائلة، وتكدر تطلبها بسهولة من خلال المنيو وترسل الطلب مباشرة إلى الفرع.',
+        currency: 'د.ع',
+        homeBranchId: ''
+      },
+      branches: [], categories: {}, items: {}
+    };
+
+    // ---------- الفروع وأرقامها (تُستخدم إذا ما وصلت من قاعدة البيانات) ----------
+    const BRANCH_WHATSAPP = {
+      amiriya: '07750556655',
+      abo_tayara: '07705257610',
+      sehha: '07747776677'
+    };
+    const SITE_BRANCH = (SITES[SITE_PARAM] && SITES[SITE_PARAM].branch) || null;
+    const DEFAULT_BRANCHES = SITE_BRANCH
+      ? [Object.assign({}, SITE_BRANCH)]
+      : [
+        { id: 'amiriya', name: 'العامرية', phone: '07750556655', whatsapp: '07750556655', order: 0, address: 'بغداد - العامرية - شارع العمل الشعبي - قرب مول العامرية' },
+        { id: 'abo_tayara', name: 'أبو طيارة', phone: '07705257610', whatsapp: '07705257610', order: 1 },
+        { id: 'sehha', name: 'الصحة', phone: '07747776677', whatsapp: '07747776677', order: 2 }
+      ];
+
+    // ---------- state ----------
+    let db = null;
+    let settings = Object.assign({}, DEFAULTS.settings);
+    let branches = [];
+    let categories = [];
+    let items = [];
+    let cart = [];
+    let currentCatId = null;
+    let showFeatured = false;
+    let orderType = 'delivery';
+    let activeBranchId = '';
+    let unsubBranch = [];
+
+    // رابط خاص بالفرع: app.html?branch=amiriya
+    const URL_BRANCH = String(new URLSearchParams(location.search).get('branch') || '').trim().toLowerCase();
+    let urlBranchDone = false;
+    let branchPageOpened = false;
+
+    // ---------- escaping (XSS) ----------
+    const esc = v => String(v == null ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const safeUrl = v => {
+      const s = String(v == null ? '' : v).trim();
+      return /^(https?:\/\/|data:image\/)/i.test(s) ? esc(s) : '';
+    };
+    const iconClass = v => {
+      const s = String(v == null ? '' : v).trim();
+      return /^[a-z0-9- ]+$/i.test(s) ? esc(s) : 'fa-utensils';
+    };
+
+    const money = p => Number(p || 0).toLocaleString('en-US') + ' ' + settings.currency;
+    const byOrder = (a, b) => (a.order ?? 0) - (b.order ?? 0) || String(a.name).localeCompare(String(b.name), 'ar');
+    const el = id => document.getElementById(id);
+
+    // ---------- cache ----------
+    function saveCache() {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), settings, branches, categories, items }));
+      } catch (e) { /* storage full or blocked */ }
+    }
+    function loadCache() {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.at || Date.now() - parsed.at > CACHE_TTL) return false;
+        settings = Object.assign({}, DEFAULTS.settings, parsed.settings || {});
+        branches = parsed.branches || [];
+        categories = parsed.categories || {};
+        items = parsed.items || {};
+        return true;
+      } catch (e) { return false; }
+    }
+    const activeBranches = () => branches.filter(b => b.active !== false);
+    const branchById = id => branches.find(b => b.id === id);
+
+    // رقم واتساب الفرع بصيغة دولية جاهزة لل wa.me
+    const toWaNumber = raw => {
+      const d = String(raw == null ? '' : raw).replace(/\D/g, '');
+      if (!d) return '';
+      if (d.startsWith('964')) return d;
+      if (d.startsWith('00')) return d.slice(2);
+      if (d.startsWith('0')) return '964' + d.slice(1);
+      return d;
+    };
+    // يحدد رقم واتساب حسب الفرع المختار: عامرية / أبو طيارة / صحة
+    function branchWhatsapp(branch) {
+      if (!branch) return '';
+      if (BRANCH_WHATSAPP[branch.id]) return BRANCH_WHATSAPP[branch.id];
+      const name = String(branch.name || '').trim();
+      const nameKey = name.replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/\s+/g, ' ');
+      if (/طياره/.test(nameKey)) return BRANCH_WHATSAPP.abo_tayara;
+      if (/صحة/.test(nameKey)) return BRANCH_WHATSAPP.sehha;
+      if (/عامريه/.test(nameKey)) return BRANCH_WHATSAPP.amiriya;
+      return branch.whatsapp || settings.whatsapp || '';
+    }
+    const catsOf = id => (categories[id] || []).slice().sort(byOrder);
+    const itemsOf = (branchId, catId) => (items[branchId] || [])
+      .filter(i => i.categoryId === catId && i.available !== false)
+      .sort(byOrder);
+
+    // ---------- toast / offline ----------
+    let toastTimer;
+    function toast(msg) {
+      const t = el('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+    }
+    const OFFLINE_MSG = 'تعذر الاتصال بقاعدة البيانات. نعرض آخر نسخة محفوظة على الجهاز.';
+    const setOffline = (v, err) => {
+      const bar = el('offlineBar');
+      bar.textContent = OFFLINE_MSG + (v && err ? ' (رمز الخطأ: ' + (err.code || err.message || err) + ')' : '');
+      bar.classList.toggle('show', v);
+    };
+
+    // ---------- rendering ----------
+    function renderSettings() {
+      document.title = settings.restaurantName || 'مطعم';
+      el('brandName').textContent = settings.restaurantName;
+      el('heroBadge').textContent = settings.heroBadge;
+      el('heroText').textContent = settings.heroText;
+      el('heroBrand').textContent = settings.restaurantName;
+      el('heroTitle').textContent = settings.tagline;
+      el('heroCta').textContent = settings.heroCta;
+      el('aboutTitle').textContent = settings.aboutTitle;
+      el('aboutText').textContent = settings.aboutText;
+      const ig = safeUrl(settings.instagram);
+      el('instagramLink').href = ig || '#';
+      el('instagramLink').style.display = ig ? '' : 'none';
+    }
+
+    function renderCategories(target, list, mode) {
+      const box = el(target);
+      if (!box) return;
+      box.className = 'categories ' + mode;
+      box.innerHTML = list.map(c => {
+        const isF = !!c.__f;
+        const on = isF ? showFeatured : (c.id === currentCatId && !showFeatured);
+        const click = isF ? 'toggleFeatured()' : 'selectCategory(\'' + esc(c.id) + '\')';
+        return '<button class="category' + (on ? ' active' : '') + '" onclick="' + click + '">'
+          + '<i class="fa-solid ' + iconClass(c.icon) + '"></i><span>' + esc(c.name) + '</span></button>';
+      }).join('');
+    }
+
+    function renderHome() {
+      renderCategories('homeCategories', catsOf(activeBranchId), 'cats-vert');
+    }
+
+    function renderBranches() {
+      const list = activeBranches();
+      el('branchesList').innerHTML = list.length ? list.map(b => {
+        const map = safeUrl(b.mapUrl);
+        const phone = b.phone ? '<a href="tel:' + String(b.phone).replace(/[^\d+]/g, '') + '"><i class="fa-solid fa-phone"></i>اتصل بنا: ' + esc(b.phone) + '</a>' : '';
+        return '<article class="info"><h3>' + esc(SINGLE_SITE ? b.name : 'فرع ' + b.name) + '</h3>'
+          + '<p>' + esc(b.address || 'العنوان قيد الإضافة') + '</p>'
+          + phone
+          + (map ? '<a target="_blank" rel="noopener nofollow" href="' + map + '"><i class="fa-solid fa-location-dot"></i>عرض الخريطة</a>' : '')
+          + '</article>';
+      }).join('') : '<article class="branch-empty"><i class="fa-solid fa-location-dot"></i><h3>ماكو فروع مضافة</h3></article>';
+    }
+
+    function renderBranchPicker() {
+      const list = activeBranches();
+      const single = list.length < 2;
+      el('branchPicker').style.display = single ? 'none' : 'grid';
+      el('branchPicker').innerHTML = list.length ? list.map(b =>
+        '<button class="' + (b.id === activeBranchId ? 'active' : '') + '" onclick="selectBranch(\'' + esc(b.id) + '\')"><i class="fa-solid fa-location-dot"></i> ' + esc(b.name) + '</button>'
+      ).join('') : '<div class="branch-empty" style="grid-column:1/-1">ماكو فروع مضافة بعد.</div>';
+      const sel = el('branch');
+      const keep = sel.value;
+      sel.innerHTML = list.map(b => {
+        const phone = b.phone ? ' - ' + esc(b.phone) : '';
+        return '<option value="' + esc(b.id) + '">' + esc(b.name) + phone + '</option>';
+      }).join('');
+      if (list.some(b => b.id === keep)) sel.value = keep;
+      else if (list.some(b => b.id === activeBranchId)) sel.value = activeBranchId;
+    }
+
+    function renderMenu() {
+      renderBranchPicker();
+      const cats = catsOf(activeBranchId);
+      const branch = branchById(activeBranchId);
+      const all = items[activeBranchId] || [];
+      const featured = all.filter(i => i.featured === true && i.available !== false);
+      const bestSeller = { __f: true, name: 'الأكثر مبيعاً', icon: 'fa-fire' };
+      const catStrip = featured.length ? [bestSeller].concat(cats) : cats;
+      if (!cats.length) {
+        el('categories').innerHTML = '';
+        el('menuGrid').innerHTML = '<article class="branch-empty"><i class="fa-solid fa-utensils"></i><h3>منيو فرع '
+          + esc(branch ? branch.name : '') + ' قيد الإضافة</h3><p>الأصناف والأسعار الخاصة بهذا الفرع راح تظهر هنا.</p></article>';
+        return;
+      }
+      if (!cats.some(c => c.id === currentCatId)) currentCatId = null;
+      renderCategories('categories', catStrip, currentCatId || showFeatured ? 'cats-cards' : 'cats-vert');
+      if (showFeatured && featured.length) {
+        el('menuGrid').innerHTML = featured.map(product).join('');
+        return;
+      }
+      if (!currentCatId) {
+        el('menuGrid').innerHTML = '';
+        return;
+      }
+      const list = itemsOf(activeBranchId, currentCatId);
+      el('menuGrid').innerHTML = list.length
+        ? list.map(product).join('')
+        : '<article class="branch-empty"><i class="fa-solid fa-bowl-food"></i><h3>ماكو أصناف بقسم هاد</h3></article>';
+    }
+
+    function art(item) {
+      const src = safeUrl(item.image);
+      if (!src) return '<div class="placeholder"><i class="fa-solid fa-cube"></i><span>صورة 3D للمنتج</span></div>';
+      return '<img src="' + src + '" alt="' + esc(item.name) + '" loading="lazy"'
+        + ' onerror="this.outerHTML=\'<div class=&quot;placeholder&quot;><i class=&quot;fa-solid fa-cube&quot;></i><span>صورة 3D للمنتج</span></div>\'">';
+    }
+    // ---------- خيارات الصنف (أحجام + إضافات) ----------
+    const sizeList = item => (Array.isArray(item && item.sizes) ? item.sizes : [])
+      .filter(s => s && s.label != null && s.label !== '')
+      .map(s => ({ label: String(s.label), price: Number(s.price) || 0 }));
+    const extraList = item => (Array.isArray(item && item.extras) ? item.extras : [])
+      .filter(s => s && s.label != null && s.label !== '')
+      .map(s => ({ label: String(s.label), price: Number(s.price) || 0 }));
+    // الخيارات مطلوبة فقط إذا عنده أكثر من حجم أو إضافات
+    const hasOptions = item => sizeList(item).length > 1 || extraList(item).length > 0;
+    const startPrice = item => {
+      const s = sizeList(item);
+      return s.length ? Math.min.apply(null, s.map(x => x.price)) : (Number(item.price) || 0);
+    };
+
+    let optItem = null;
+    let optSize = -1;
+    let optExtras = [];
+
+    function openOptions(id) {
+      const item = findItem(id);
+      if (!item) return;
+      optItem = item;
+      optSize = sizeList(item).length ? 0 : -1;
+      optExtras = [];
+      el('optTitle').textContent = item.name;
+      renderOptions();
+      el('optSheet').classList.add('open');
+    }
+    function renderOptions() {
+      const sizes = sizeList(optItem);
+      const extras = extraList(optItem);
+      el('optSizes').style.display = sizes.length ? 'block' : 'none';
+      el('optExtras').style.display = extras.length ? 'block' : 'none';
+      el('optSizes').innerHTML = sizes.length
+        ? '<strong>الحجم <span class="opt-hint">مفروض تختار</span></strong><div class="chips">'
+          + sizes.map((s, i) => '<button class="chip ' + (i === optSize ? 'on' : '') + '" onclick="pickSize(' + i + ')">'
+            + esc(s.label) + (sizes.length > 1 ? ' <small>' + money(s.price) + '</small>' : '') + '</button>').join('')
+          + '</div>'
+        : '';
+      el('optExtras').innerHTML = extras.length
+        ? '<strong>الإضافات <span class="opt-hint">اختياري</span></strong><div class="chips">'
+          + extras.map((s, i) => {
+              const on = optExtras.indexOf(i) > -1;
+              return '<button class="chip ' + (on ? 'on' : '') + '" onclick="pickExtra(' + i + ')">'
+                + esc(s.label) + ' <small>+' + money(s.price) + '</small></button>';
+            }).join('')
+          + '</div>'
+        : '';
+      el('optTotal').textContent = money(optionsTotal());
+      el('optAdd').disabled = sizes.length > 0 && optSize < 0;
+    }
+    function optionsTotal() {
+      const sizes = sizeList(optItem);
+      const extras = extraList(optItem);
+      const base = optSize > -1 && sizes[optSize] ? sizes[optSize].price : (Number(optItem && optItem.price) || 0);
+      return base + optExtras.reduce((a, i) => a + (extras[i] ? extras[i].price : 0), 0);
+    }
+    function optionsName() {
+      const sizes = sizeList(optItem);
+      const extras = extraList(optItem);
+      const parts = [String((optItem && optItem.name) || '')];
+      if (optSize > -1 && sizes[optSize]) parts.push(sizes[optSize].label);
+      optExtras.forEach(i => { if (extras[i]) parts.push(extras[i].label); });
+      return parts.join(' + ');
+    }
+    function pickSize(i) { optSize = i; renderOptions(); }
+    function pickExtra(i) {
+      const at = optExtras.indexOf(i);
+      if (at > -1) optExtras.splice(at, 1); else optExtras.push(i);
+      renderOptions();
+    }
+    function confirmOptions() {
+      if (!optItem) return;
+      addToCart(optItem.id, optionsName(), optionsTotal());
+      closeOptions();
+    }
+    function closeOptions() {
+      el('optSheet').classList.remove('open');
+      optItem = null;
+    }
+    function closeOptFromOverlay(e) { if (e.target.id === 'optSheet') closeOptions(); }
+
+    function product(item) {
+      // أصناف لها أكثر من حجم (بيتزا، لحم بعجين) → «اختر الفئة» بدل «من السعر»
+      const multiSize = sizeList(item).length > 1;
+      const label = multiSize
+        ? '<em class="pick-size"><i class="fa-solid fa-sliders"></i> اختر الفئة</em>'
+        : extraList(item).length
+          ? 'من ' + money(startPrice(item))
+          : money(item.price);
+      return '<article class="product"><div class="art">' + art(item) + '</div><div class="product-body">'
+        + '<h3 class="name">' + esc(item.name) + '</h3>'
+        + '<p class="desc">' + esc(item.desc || 'أضف المنتج إلى السلة بسهولة') + '</p>'
+        + '<div class="footer"><span class="price">' + label + '</span>'
+        + '<button class="add" aria-label="إضافة ' + esc(item.name) + '" onclick="addToCart(\'' + esc(item.id) + '\')"><i class="fa-solid fa-plus"></i></button>'
+        + '</div></div></article>';
+    }
+
+    function renderCart() {
+      const list = el('cartItems');
+      const total = cart.reduce((a, x) => a + x.price * x.qty, 0);
+      el('cartCount').textContent = cart.reduce((a, x) => a + x.qty, 0);
+      el('totalPrice').textContent = money(total);
+      list.innerHTML = cart.length ? cart.map((x, i) =>
+        '<div class="cart-row"><div><strong>' + esc(x.name) + '</strong><small>' + money(x.price) + '</small></div>'
+        + '<div class="cart-qty"><button class="qty-btn" onclick="changeQty(' + i + ',-1)" aria-label="إنقاص">−</button><b>' + x.qty + '</b>'
+        + '<button class="qty-btn" onclick="changeQty(' + i + ',1)" aria-label="زيادة">+</button>'
+        + '<button class="delete" onclick="removeFromCart(' + i + ')" aria-label="حذف"><i class="fa-solid fa-trash"></i></button></div></div>'
+      ).join('') : '<p class="empty">السلة فارغة حاليًا</p>';
+    }
+
+    function renderAll() {
+      renderSettings();
+      renderHome();
+      renderBranches();
+      renderMenu();
+      renderCart();
+      saveCache();
+    }
+
+    // ---------- navigation ----------
+    function showView(name) {
+      // موقع فرع واحد: ما فيه صفحة رئيسية (المنيو هي البداية)
+      if (SINGLE_SITE && name === 'home') name = 'menu';
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      const target = el(name + 'View');
+      if (target) target.classList.add('active');
+      document.querySelectorAll('.nav-item[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+      if (name === 'menu') renderMenu();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function selectBranch(id) {
+      activeBranchId = id;
+      currentCatId = null;
+      loadBranchData();
+      renderMenu();
+    }
+    function selectCategory(id) {
+      showFeatured = false;
+      currentCatId = id;
+      renderMenu();
+    }
+    function toggleFeatured() {
+      showFeatured = !showFeatured;
+      currentCatId = null;
+      renderMenu();
+    }
+    // زر الرجوع: قسم مختار → كل الأقسام، وإلا → صفحة الفروع
+    function goBack() {
+      if (showFeatured) { showFeatured = false; renderMenu(); }
+      else if (currentCatId) { currentCatId = null; renderMenu(); }
+      else { location.href = 'index.html'; return; }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ---------- cart ----------
+    function findItem(id) {
+      return (items[activeBranchId] || []).find(i => i.id === id);
+    }
+    function addToCart(id, forcedName, forcedPrice) {
+      const item = findItem(id);
+      if (!item) return;
+      if (forcedName == null && hasOptions(item)) return openOptions(id);
+      const name = forcedName != null ? forcedName : item.name;
+      const price = forcedPrice != null ? Number(forcedPrice) || 0 : (Number(item.price) || 0);
+      const old = cart.find(x => x.id === id && x.name === name);
+      if (old) { if (old.qty >= 99) return toast('وصلت للحد الأقصى'); old.qty++; }
+      else cart.push({ id: item.id, name: name, price: price, qty: 1 });
+      renderCart();
+      toast('تمت الإضافة إلى السلة');
+    }
+    function changeQty(i, delta) {
+      const row = cart[i];
+      if (!row) return;
+      row.qty += delta;
+      if (row.qty <= 0) cart.splice(i, 1);
+      else if (row.qty > 99) row.qty = 99;
+      renderCart();
+    }
+    function removeFromCart(i) { cart.splice(i, 1); renderCart(); }
+    function openCart() {
+      renderBranchPicker();
+      const sel = el('branch');
+      if (!activeBranches().some(b => b.id === sel.value) && activeBranches().some(b => b.id === activeBranchId)) {
+        sel.value = activeBranchId;
+      }
+      el('cartSheet').classList.add('open');
+      renderCart();
+    }
+    function closeCart() { el('cartSheet').classList.remove('open'); }
+    function closeFromOverlay(e) { if (e.target.id === 'cartSheet') closeCart(); }
+    function setType(type) {
+      orderType = type;
+      document.querySelectorAll('.type-tabs button').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+      el('customerAddress').style.display = type === 'delivery' ? 'block' : 'none';
+      const fee = el('feeNote');
+      if (fee) fee.style.display = type === 'delivery' ? 'flex' : 'none';
+    }
+
+    // ---------- checkout ----------
+    function readOrderForm() {
+      const name = el('customerName').value.trim();
+      const phone = el('customerPhone').value.trim();
+      const address = el('customerAddress').value.trim();
+      const branchId = el('branch').value;
+      if (!name || !phone) return { error: 'يرجى كتابة الاسم ورقم الهاتف' };
+      if (orderType === 'delivery' && !address) return { error: 'يرجى كتابة العنوان للتوصيل' };
+      if (!branchId) return { error: 'اختر الفرع' };
+      const branch = branchById(branchId);
+      if (!branch) return { error: 'الفرع غير موجود' };
+      return { name, phone, address, branchId, branch };
+    }
+
+    async function saveOrder() {
+      // مخفي من الواجهة (الطلب يروح واتساب) — موجود لو Wants ترجع_orders_لوحة التحكم
+      if (!cart.length) return toast('السلة فارغة');
+      if (!db) return toast('تعذر الاتصال بقاعدة البيانات');
+      const form = readOrderForm();
+      if (form.error) return toast(form.error);
+      try {
+        const { doc, setDoc, serverTimestamp } = await import(FALLBACK + '/firebase-firestore.js');
+        await setDoc(doc(db, ...ROOT, 'orders', 'order_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)), {
+          branchId: form.branchId,
+          branchName: form.branch.name || '',
+          type: orderType,
+          name: form.name,
+          phone: form.phone,
+          address: form.address,
+          items: cart.map(x => ({ name: x.name, price: Number(x.price) || 0, qty: x.qty })),
+          total: cart.reduce((a, x) => a + x.price * x.qty, 0),
+          status: 'new',
+          createdAt: serverTimestamp()
+        });
+        cart = [];
+        renderCart();
+        toast('تم حفظ الطلب ✅');
+        closeCart();
+      } catch (err) {
+        console.error(err);
+        toast('تعذر حفظ الطلب: ' + (err && err.message ? err.message : 'خطأ'));
+      }
+    }
+
+    function sendWhatsapp() {
+      if (!cart.length) return toast('السلة فارغة');
+      const form = readOrderForm();
+      if (form.error) return toast(form.error);
+      const wa = toWaNumber(branchWhatsapp(form.branch));
+      if (!wa) return toast('رقم واتساب هذا الفرع غير مضاف بعد');
+      const typeLabel = { delivery: 'توصيل', pickup: 'سفري', dinein: 'صالة' }[orderType];
+      let msg = '*طلب جديد - ' + (settings.restaurantName || '') + '*\n'
+        + 'الفرع: ' + form.branch.name + '\n'
+        + 'النوع: ' + typeLabel + '\n'
+        + 'الاسم: ' + form.name + '\n'
+        + 'الرقم: ' + form.phone + '\n';
+      if (orderType === 'delivery') msg += 'العنوان: ' + form.address + '\n';
+      msg += '----------------\n';
+      cart.forEach(x => { msg += '- ' + x.name + ' (' + money(x.price) + ' × ' + x.qty + ')\n'; });
+      msg += '----------------\nالمجموع: ' + money(cart.reduce((a, x) => a + x.price * x.qty, 0));
+      if (orderType === 'delivery') msg += '\n(أجور التوصيل غير مشمولة)';
+      window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+    }
+
+    // ---------- firestore listeners ----------
+    function ensureBranches() {
+      if (!branches.length) branches = DEFAULT_BRANCHES.slice();
+      // موقع الفرع: فرعه الأساسي موجود دائماً — وإذا ضيف فروع ثانية تظهر للزبائن بالمبدّل
+      if (SITE_BRANCH && !branches.some(b => b.id === SITE_BRANCH.id)) {
+        branches = [Object.assign({}, SITE_BRANCH)]
+          .concat(branches.filter(b => b.active !== false))
+          .sort(byOrder);
+      }
+    }
+
+    function pickHomeBranch() {
+      const list = activeBranches();
+      if (URL_BRANCH && !urlBranchDone) {
+        const found = list.find(b =>
+          String(b.id).toLowerCase() === URL_BRANCH ||
+          String(b.name || '').trim().toLowerCase() === URL_BRANCH);
+        if (found) { activeBranchId = found.id; urlBranchDone = true; return; }
+      }
+      const wanted = settings.homeBranchId && list.some(b => b.id === settings.homeBranchId)
+        ? settings.homeBranchId
+        : (list[0] || {}).id || '';
+      if (!list.some(b => b.id === activeBranchId)) activeBranchId = wanted;
+    }
+
+    function loadBranchData() {
+      unsubBranch.forEach(f => { try { f(); } catch (e) { } });
+      unsubBranch = [];
+      if (!db || !activeBranchId) return;
+      const { collection, query, orderBy, onSnapshot } = fbFirestore;
+      const base = [...ROOT, 'branches', activeBranchId];
+      unsubBranch.push(onSnapshot(query(collection(db, ...base, 'categories'), orderBy('order')), snap => {
+        categories[activeBranchId] = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        renderHome(); renderMenu(); saveCache();
+      }, err => console.warn('categories', err)));
+      unsubBranch.push(onSnapshot(query(collection(db, ...base, 'items'), orderBy('order')), snap => {
+        items[activeBranchId] = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        renderHome(); renderMenu(); saveCache();
+      }, err => console.warn('items', err)));
+    }
+
+    let fbFirestore = null;
+
+    async function connect() {
+      const config = window.FIREBASE_CONFIG;
+      if (!config || !config.apiKey || config.apiKey.startsWith('PASTE_')) {
+        setOffline(true);
+        return;
+      }
+      try {
+        const [appMod, fsMod] = await Promise.all([
+          import(FALLBACK + '/firebase-app.js'),
+          import(FALLBACK + '/firebase-firestore.js')
+        ]);
+        fbFirestore = fsMod;
+        db = fsMod.getFirestore(appMod.initializeApp(config));
+        const { doc, collection, query, orderBy, onSnapshot } = fsMod;
+
+        onSnapshot(doc(db, ...ROOT), snap => {
+          if (snap.exists()) settings = Object.assign({}, DEFAULTS.settings, snap.data().settings || {});
+          pickHomeBranch();
+          renderAll();
+        }, err => { console.warn('settings', err); setOffline(true, err); });
+
+        onSnapshot(query(collection(db, ...ROOT, 'branches'), orderBy('order')), snap => {
+          branches = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort(byOrder);
+          ensureBranches();
+          pickHomeBranch();
+          renderAll();
+          loadBranchData();
+          if (SINGLE_SITE || URL_BRANCH) openBranchPage();
+        }, err => { console.warn('branches', err); setOffline(true, err); });
+      } catch (err) {
+        console.warn('firebase', err);
+        setOffline(true, err);
+      }
+    }
+
+    // ---------- init ----------
+    if (SINGLE_SITE) {
+      // موقع فرع واحد: يخفي الرئيسية والهيرو، والمنيو كل شي
+      const navHome = el('navHome');
+      if (navHome) navHome.style.display = 'none';
+      el('homeView').classList.remove('active');
+    }
+    loadCache();
+    ensureBranches();
+    pickHomeBranch();
+    renderAll();
+    setType('delivery');
+    if (SINGLE_SITE || URL_BRANCH) openBranchPage();
+    connect();
+
+    // صفحة الفرع: تفتح المنيو مباشرة باسم الفرع
+    function openBranchPage() {
+      const b = branchById(activeBranchId) || SITE_BRANCH || null;
+      if (!branchPageOpened) {
+        branchPageOpened = true;
+        const head = el('menuView').querySelector('.page-heading h2');
+        if (head) head.textContent = b ? 'منيو ' + b.name : 'قائمة طعامنا';
+        showView('menu');
+      }
+    }
+  </script>
+</body>
+</html>

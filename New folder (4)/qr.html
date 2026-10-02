@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>باركود لكل فرع</title>
+<style>
+  body{font-family:Tahoma,Arial,sans-serif;background:#fffdf9;color:#2f201b;margin:0;padding:20px;max-width:760px;margin-inline:auto}
+  h1{color:#712714;font-size:1.25rem}
+  .box{background:#fff;border:1px solid #eee4dc;border-radius:8px;padding:16px;margin-bottom:16px}
+  button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:11px 18px;background:#712714;color:#fff;cursor:pointer}
+  select,input{font:inherit;padding:9px;border:1px solid #ddd;border-radius:5px;direction:ltr;width:100%;box-sizing:border-box;margin-top:6px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .tabbtn{background:#f6eee7;color:#712714;padding:9px 15px;border-radius:6px;font-weight:700}
+  .tabbtn.on{background:#712714;color:#fff}
+  .qr{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+  .qr img{width:240px;height:240px;border:1px solid #eee4dc;border-radius:8px;background:#fff;padding:8px}
+  .qr h2{margin:0 0 6px;font-size:1.05rem;color:#712714}
+  .hint{color:#887b74;font-size:.83rem;line-height:1.7}
+  .url{word-break:break-all;background:#f6eee7;padding:8px 10px;border-radius:6px;direction:ltr;text-align:left;font-size:.83rem}
+  @media print{body{background:#fff}.noprint{display:none}}
+</style>
+</head>
+<body>
+<h1>باركود (QR) لكل فرع</h1>
+
+<div class="box noprint">
+  <div class="tabs">
+    <button class="tabbtn on" data-id="amiriya" onclick="pick('amiriya')">العامرية</button>
+    <button class="tabbtn" data-id="abo_tayara" onclick="pick('abo_tayara')">أبو طيارة</button>
+    <button class="tabbtn" data-id="sehha" onclick="pick('sehha')">الصحة</button>
+  </div>
+  <label style="display:block">رابط موقعك:
+    <input id="base" placeholder="https://your-site.web.app">
+  </label>
+  <p class="hint">اكتب رابط موقعك مرة وحدة وبيحفظ بمتصفحك. أمثلة: <span dir="ltr">https://site/amiriya.html</span></p>
+  <p><button onclick="print()">طباعة الباركود</button></p>
+</div>
+
+<div class="box">
+  <div class="qr">
+    <img id="img" alt="QR">
+    <div>
+      <h2 id="title">فرع العامرية</h2>
+      <div class="url" id="url"></div>
+      <p class="hint" style="direction:ltr;text-align:left;font-size:.78rem" id="phone"></p>
+      <p class="hint noprint">وجّه الكاميرا على الكود يگلك منيو الفرع مباشرة. لوحة تحكم هذا الفرع: <span class="url" id="adminUrl"></span></p>
+    </div>
+  </div>
+</div>
+
+<script>
+const BRANCHES = {
+  amiriya: { title: 'فرع العامرية', phone: '07750556655' },
+  abo_tayara: { title: 'فرع أبو طيارة', phone: '07705257610' },
+  sehha: { title: 'فرع الصحة', phone: '07747776677' }
+};
+let current = 'amiriya';
+const baseInput = document.getElementById('base');
+const saved = localStorage.getItem('site-base') || '';
+baseInput.value = saved || (location.protocol.startsWith('http') ? location.origin + location.pathname.replace(/[^/]*$/, '') : '');
+
+function base() {
+  let b = baseInput.value.trim().replace(/\/+$/, '');
+  if (!b) b = 'https://example.web.app';
+  return b;
+}
+function pick(id) {
+  current = id;
+  document.querySelectorAll('.tabbtn').forEach(b => b.classList.toggle('on', b.dataset.id === id));
+  render();
+}
+function render() {
+  const b = BRANCHES[current];
+  const url = base() + '/' + current + '.html';
+  document.getElementById('title').textContent = b.title;
+  document.getElementById('url').textContent = url;
+  document.getElementById('phone').textContent = b.phone;
+  document.getElementById('adminUrl').textContent = base() + '/admin.html?site=' + current;
+  document.getElementById('img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=480x480&margin=8&data=' + encodeURIComponent(url);
+}
+baseInput.addEventListener('input', () => { localStorage.setItem('site-base', baseInput.value.trim()); render(); });
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>رفع منيو أبو طيارة والصحة</title>
+<style>
+  body{font-family:Tahoma,Arial,sans-serif;background:#fffdf9;color:#2f201b;margin:0;padding:20px;max-width:900px;margin-inline:auto}
+  h1{color:#712714;font-size:1.3rem}h2{margin:22px 0 6px;color:#712714;font-size:1.05rem}
+  .box{background:#fff;border:1px solid #eee4dc;border-radius:8px;padding:16px;margin-bottom:16px}
+  input{font:inherit;padding:7px;border:1px solid #ddd;border-radius:5px}
+  .login input[type=email],.login input[type=password]{width:100%;margin-bottom:8px;box-sizing:border-box}
+  label{display:inline-block;margin:6px 12px 6px 0}
+  button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:11px 18px;background:#712714;color:#fff;cursor:pointer}
+  button:disabled{opacity:.5}
+  table{width:100%;border-collapse:collapse;margin-bottom:6px}
+  th,td{padding:5px 6px;border-bottom:1px solid #f0e6dd;text-align:right;vertical-align:top;font-size:.88rem}
+  th{color:#887b74;font-size:.78rem}
+  td input.n{width:100%;box-sizing:border-box}
+  td input.p{width:88px;direction:ltr;text-align:center}
+  .cell{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+  .cell label{margin:0;font-size:.76rem;color:#712714;font-weight:700}
+  small{color:#887b74;display:block;font-size:.74rem}
+  .note{color:#8a6d00;font-size:.85rem}
+  .hint{color:#887b74;font-size:.8rem}
+  #log{white-space:pre-wrap;font-size:.9rem;margin-top:12px}
+  .err{color:#b3261e}.ok{color:#1d7a46}
+</style>
+</head>
+<body>
+<h1>رفع منيو أبو طيارة والصحة (الدورة)</h1>
+
+<div class="box login">
+  <b>1) سجّل دخول الأدمن</b>
+  <p class="note">الإيميل والباسورد يُستخدمان للدخول فقط ولا يُحفظان.</p>
+  <input id="email" type="email" value="maad@fa.com" dir="ltr">
+  <input id="pass" type="password" placeholder="الباسورد" dir="ltr">
+</div>
+
+<div class="box">
+  <b>2) اختر الفرع</b>
+  <div>
+    <label><input type="checkbox" id="b_abo" checked> أبو طيارة — 07705257610</label>
+    <label><input type="checkbox" id="b_sehha" checked> الصحة — 07747776677</label>
+  </div>
+  <label><input type="checkbox" id="sync" checked> احذف الأصناف والأقسام القديمة الزايدة فقط (الجديد ينكتب فوق القديم — بدون تكرار)</label>
+  <p class="hint">المنيو نفسسه للفرعين. ما يمس فرع العامرية.</p>
+</div>
+
+<div class="box">
+  <b>3) راجع الأصناف والأسعار (بالدينار) — عدّل أي شي قبل الرفع</b>
+  <p class="hint">البيتزا فيها حجمين (وسط/كبير)، ولحم بعجين الزبون يختار الحجم والإضافات.</p>
+  <div id="menu"></div>
+</div>
+
+<div class="box">
+  <b>4) ارفع للقاعدة</b><br><br>
+  <button id="go">رفع منيو أبو طيارة والصحة</button>
+  <div id="log"></div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import { getFirestore, doc, collection, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+const SITES = window.FIREBASE_SITES || {};
+
+// كل فرع موقع مستقل: دوكمنت خاص به بالقاعدة (ما يختلط مع غيره)
+const BRANCHES = {
+  abo_tayara: { box: 'b_abo', site: 'tayyara', data: {
+    name: 'أبو طيارة', whatsapp: '9647705257610', phone: '07705257610',
+    address: 'الدورة / شارع أبو طيارة / مقابل مطعم تمام',
+    mapUrl: 'https://maps.app.goo.gl/anGenh2ESA3tWMVA7', active: true, order: 0 } },
+  sehha: { box: 'b_sehha', site: 'seha', data: {
+    name: 'الصحة', whatsapp: '9647747776677', phone: '07747776677',
+    address: 'الدورة / شارع الصحة / مجاور الشيف السوري',
+    mapUrl: 'https://maps.app.goo.gl/Av8bPNNK6k9HWfdTA', active: true, order: 0 } }
+};
+const rootOf = key => ['restaurantSites',
+  (SITES[BRANCHES[key].site] && SITES[BRANCHES[key].site].doc) || ('family-' + BRANCHES[key].site)];
+
+const STORY = 'من قلب العائلة بدأت الحكاية. في جلسة بسيطة، وسط أحاديثنا الدافئة وضحكاتنا الخفيفة، وُلد حلم صغير: مكان يشبه البيت، بتبكته ودفئه ولطافته. كبر الحلم وصار مطبخنا عائلياً يجمع حوله الأهل والأصدقاء.\n\nنختار أجود المكونات، ونهتم بالتفاصيل من أول تحضير لين آخر تقديم. كل وجبة عندنا هي رسالة، ورسالتها: أهلاً بك بين أهلنا.';
+const settingsFor = (key, b) => ({
+  restaurantName: 'مطعم العائلة — ' + b.data.name,
+  tagline: 'الطعم اللي يجمع العائلة',
+  heroBadge: 'أهلاً بكم في فرع ' + b.data.name,
+  heroText: 'منيو فرع ' + b.data.name + ' — بيتزا إيطالي، لحم بعجين، صاج، مشاوي وأجنحة وطاووق. اطلبها توصيل أو سفري.',
+  heroCta: 'شوف المنيو',
+  phoneDisplay: b.data.phone,
+  phoneDial: b.data.phone,
+  instagram: 'https://www.instagram.com/family.rest_',
+  whatsapp: b.data.whatsapp,
+  aboutTitle: 'قصة المطعم — فرع ' + b.data.name,
+  aboutText: STORY + '\n\nفرع ' + b.data.name + ' — ' + b.data.address + ' — للطلب والاستفسار: ' + b.data.phone,
+  currency: 'د.ع',
+  homeBranchId: key
+});
+
+const pizzas = [
+  ['بيتزا لحم عراقي', 8000, 12000, 'صلصة طماطة، لحم مفروم، فطر، جبن، زيتون'],
+  ['بيتزا كص لحم', 7000, 10000, 'صلصة طماطة، كص لحم، فطر، جبن، موزريلا، فطلة، طماطة، زيتون'],
+  ['بيتزا باربكيو لحم عراقي', 8000, 12000, 'صلصة باربكيو، لحم مفروم، جبن موزاريلا، برميزان، زيتون، بصل، فطر، طماطة، فلفل'],
+  ['بيتزا دجاج مدخن', 7000, 10000, 'صلصة طماطة، دجاج مدخن، جبن موزاريلا، طماطة، فلفل، بصل، فطر، زيتون'],
+  ['بيتزا كص دجاج', 7000, 10000, 'صلصة طماطة، كص دجاج، طماطة، فلفل، زيتون'],
+  ['بيتزا بيبيروني', 7000, 10000, 'صلصة طماطة، شرائح بيبيروني، جبنة موزاريلا، برميزان'],
+  ['بيتزا خضار', 7000, 10000, 'صلصة طماطة، فلفل، زيتون، فطر، طماطة، بصل'],
+  ['بيتزا مارغريتا', 7000, 10000, 'صلصة طماطة، جبن موزاريلا، جبن برميزان'],
+  ['بيتزا اجنان', 8000, 12000, 'صلصة اجنان، جبن موزاريلا، جبنة مدخنة، برميزان'],
+  ['بيتزا فصول', 7000, 10000, 'صلصة طماطة، فلفل، لحم، دجاج، بيبيروني، برميزان، جبن موزاريلا']
+];
+
+const MENU = [
+  { cat: 'البيتزا الإيطالي', icon: 'fa-pizza-slice', items:
+    pizzas.map(p => ({ name: p[0], desc: p[3], sizes: [['وسط', p[1]], ['كبير', p[2]]] })) },
+  { cat: 'لحم بعجين', icon: 'fa-bowl-food', items: [
+    { name: 'لحم بعجين', desc: 'اختر الحجم ثم الإضافات اللي تريدها',
+      sizes: [['صغير', 2000], ['وسط', 3000], ['دبل', 5000], ['سوبر', 10000]],
+      extras: [['بيض', 500], ['بيض وجبن', 1000], ['جبن', 500]] } ] },
+  { cat: 'صاج العائلة', icon: 'fa-utensils', items: [
+    { name: 'صاج ايطالي كص دجاج', price: 3000, desc: 'عجينة - طماطه - كس دجاج - خضار - جبن موزاريلا' },
+    { name: 'صاج ايطالي كص لحم', price: 4000, desc: 'عجينة - طماطه - كس لحم - خضار - جبن موزاريلا' },
+    { name: 'صاج ايطالي خضار', price: 2000, desc: 'عجينة - طماطه - خضار - جبن موزاريلا' },
+    { name: 'صاج طاووق العائلة', price: 3000, desc: 'طليقة - طاووق - فلفل' } ] },
+  { cat: 'المشاوي', icon: 'fa-fire-burner', items: [
+    { name: 'صينية أجنحة عائلية', price: 25000, desc: '2 كيلو أجنحة - تمن احمر - خضار - خبز' },
+    { name: 'صينية مشكل', price: 35000, desc: 'كيلو طاووق - كيلو أجنحة - 8 قطع عرائس لحم - تمن احمر - خضار - خبز - بيبسي عائلي - مقبلات' } ] },
+  { cat: 'أجنحة', icon: 'fa-drumstick-bite', items: [
+    { name: 'نص أجنحة', price: 7000, desc: 'نص كيلو أجنحة - تمن احمر - خضار - خبز' },
+    { name: 'نفر أجنحة', price: 14000, desc: 'كيلو أجنحة - تمن احمر - خضار - خبز' } ] },
+  { cat: 'طاووق', icon: 'fa-drumstick-bite', items: [
+    { name: 'شيش طاووق', price: 4000, desc: '1 شيش طاووق - تمن احمر - خضار - خبز' },
+    { name: 'نص طاووق', price: 7000, desc: '2 شيش طاووق - تمن احمر - خضار - خبز' },
+    { name: 'نفر طاووق', price: 14000, desc: '4 شيش طاووق - تمن احمر - خضار - خبز' } ] },
+  { cat: 'دجاج على الفحم', icon: 'fa-drumstick-bite', items: [
+    { name: 'دجاجة على الفحم', price: 12000, desc: 'دجاجة - تمن احمر - خضار - خبز' },
+    { name: 'نص دجاجة على الفحم', price: 7000, desc: 'نص دجاجة - تمن احمر - خضار - خبز' } ] },
+  { cat: 'العرائس', icon: 'fa-bread-slice', items: [
+    { name: 'عرائس لحم غنم', price: 7000, desc: '8 قطع - تمن احمر - خضار' } ] }
+];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+const num = v => { const n = Number(String(v).replace(/[^\d.]/g, '')); return Number.isFinite(n) ? n : 0; };
+
+function priceCell(item) {
+  if (item.sizes && item.sizes.length) {
+    return '<div class="cell">' + item.sizes.map((s, k) =>
+      '<label>' + esc(s[0]) + ' <input class="p" type="number" min="0" step="50" value="' + s[1] + '" data-s="' + k + '"></label>'
+    ).join('') + '</div>';
+  }
+  return '<input class="p" type="number" min="0" step="50" value="' + (item.price || 0) + '">';
+}
+function extrasCell(item) {
+  if (!item.extras || !item.extras.length) return '<span class="hint">—</span>';
+  return '<div class="cell">' + item.extras.map((s, k) =>
+    '<label>' + esc(s[0]) + ' <input class="p" type="number" min="0" step="50" value="' + s[1] + '" data-x="' + k + '"></label>'
+  ).join('') + '</div>';
+}
+$('menu').innerHTML = MENU.map((c, ci) =>
+  '<h2>' + esc(c.cat) + '</h2><table>'
+  + '<tr><th style="width:34%">الصنف</th><th>الوصف</th><th style="width:24%">السعر / الأحجام</th><th style="width:24%">الإضافات</th></tr>'
+  + c.items.map((it, ii) =>
+    '<tr' + (it.check ? ' style="background:#fff8e1"' : '') + ' data-c="' + ci + '" data-i="' + ii + '">'
+    + '<td><input class="n" value="' + esc(it.name) + '"></td>'
+    + '<td><small>' + esc(it.desc || '') + '</small></td>'
+    + '<td>' + priceCell(it) + '</td>'
+    + '<td>' + extrasCell(it) + '</td></tr>').join('')
+  + '</table>').join('');
+
+// يقرأ الصفوف بعد التعديل اليدوي — يرجع مصفوفة: [رقم القسم] = [الأصناف]
+function readRows() {
+  const cats = MENU.map(() => []);
+  [...document.querySelectorAll('tr[data-c]')].forEach(tr => {
+    const ci = +tr.dataset.c, ii = +tr.dataset.i;
+    const def = MENU[ci].items[ii];
+    const out = { name: tr.querySelector('.n').value.trim(), desc: def.desc || '', image: '', sizes: [], extras: [] };
+    const sizeInputs = [...tr.querySelectorAll('input.p[data-s]')];
+    if (sizeInputs.length) {
+      sizeInputs.forEach(inp => out.sizes.push({ label: def.sizes[+inp.dataset.s][0], price: num(inp.value) }));
+    } else {
+      out.price = num(tr.querySelector('input.p').value);
+    }
+    tr.querySelectorAll('input.p[data-x]').forEach(inp => {
+      out.extras.push({ label: def.extras[+inp.dataset.x][0], price: num(inp.value) });
+    });
+    cats[ci].push(out);
+  });
+  return cats;
+}
+
+const log = (t, cls) => { $('log').innerHTML += '<div class="' + (cls || '') + '">' + t + '</div>'; };
+
+function makeWriter(db) {
+  let batch = writeBatch(db), n = 0;
+  const flush = async () => { if (n) { await batch.commit(); batch = writeBatch(db); n = 0; } };
+  const bump = async () => { if (++n >= 400) await flush(); };
+  return {
+    set: async (ref, data, opts) => { opts ? batch.set(ref, data, opts) : batch.set(ref, data); await bump(); },
+    del: async ref => { batch.delete(ref); await bump(); },
+    flush
+  };
+}
+
+$('go').onclick = async () => {
+  $('log').innerHTML = '';
+  const targets = Object.entries(BRANCHES).filter(([, b]) => $(b.box).checked);
+  if (!targets.length) return log('اختر فرعاً واحداً على الأقل.', 'err');
+  $('go').disabled = true;
+  try {
+    if (!window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey) {
+      throw new Error('ملف firebase-config.js غير موجود بجانب هذه الصفحة. انسخها لمجلد المشروع نفسه (نفس مجلد index.html).');
+    }
+    const app = initializeApp(window.FIREBASE_CONFIG);
+    await signInWithEmailAndPassword(getAuth(app), $('email').value.trim(), $('pass').value);
+    log('تم تسجيل الدخول.');
+    const db = getFirestore(app);
+    const w = makeWriter(db);
+    const rows = readRows();
+
+    for (const [bid, b] of targets) {
+      const ROOT = rootOf(bid);
+      const bref = ['branches', bid];
+      const newCatIds = new Set();
+      const newItemIds = new Set();
+      let count = 0;
+
+      await w.set(doc(db, ...ROOT), { settings: settingsFor(bid, b) }, { merge: true });
+      await w.set(doc(db, ...ROOT, ...bref), b.data, { merge: true });
+      for (const [ci, c] of MENU.entries()) {
+        const catId = bid + '_c' + (ci + 1);
+        newCatIds.add(catId);
+        await w.set(doc(db, ...ROOT, ...bref, 'categories', catId), { name: c.cat, icon: c.icon, order: ci });
+        let ii = 0;
+        for (const r of rows[ci]) {
+          if (!r.name) continue;
+          const itemId = catId + '_i' + (ii + 1);
+          newItemIds.add(itemId);
+          const payload = {
+            categoryId: catId, name: r.name,
+            price: r.sizes.length ? Math.min.apply(null, r.sizes.map(s => s.price)) : (r.price || 0),
+            desc: r.desc, image: r.image, order: ii, available: true
+          };
+          if (r.sizes.length) payload.sizes = r.sizes;
+          if (r.extras.length) payload.extras = r.extras;
+          await w.set(doc(db, ...ROOT, ...bref, 'items', itemId), payload);
+          ii++; count++;
+        }
+      }
+      await w.flush();
+
+      let removed = 0;
+      if ($('sync').checked) {
+        for (const sub of ['items', 'categories']) {
+          const keep = sub === 'items' ? newItemIds : newCatIds;
+          const snap = await getDocs(collection(db, ...ROOT, ...bref, sub));
+          for (const d of snap.docs) {
+            if (keep.has(d.id)) continue;
+            await w.del(d.ref);
+            removed++;
+          }
+        }
+        await w.flush();
+      }
+      log('تم موقع ' + b.data.name + ' (' + ROOT[1] + '): ' + MENU.length + ' أقسام و' + count + ' صنف'
+        + (removed ? ' — حُذف ' + removed + ' قديم زايد.' : '.'), 'ok');
+    }
+    log('انتهى. حدّث الموقع.', 'ok');
+  } catch (e) {
+    console.error(e);
+    log('فشل: ' + (e.code || e.message), 'err');
+  }
+  $('go').disabled = false;
+};
+</script>
+</body>
+</html>

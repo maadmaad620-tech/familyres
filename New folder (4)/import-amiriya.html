@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>رفع منيو فرع العامرية</title>
+<style>
+  body{font-family:Tahoma,Arial,sans-serif;background:#fffdf9;color:#2f201b;margin:0;padding:20px;max-width:900px;margin-inline:auto}
+  h1{color:#712714;font-size:1.3rem}h2{margin:22px 0 6px;color:#712714;font-size:1.05rem}
+  .box{background:#fff;border:1px solid #eee4dc;border-radius:8px;padding:16px;margin-bottom:16px}
+  input{font:inherit;padding:7px;border:1px solid #ddd;border-radius:5px}
+  .login input[type=email],.login input[type=password]{width:100%;margin-bottom:8px;box-sizing:border-box}
+  label{display:inline-block;margin:6px 12px 6px 0}
+  button{font:inherit;font-weight:700;border:0;border-radius:6px;padding:11px 18px;background:#712714;color:#fff;cursor:pointer}
+  button:disabled{opacity:.5}
+  table{width:100%;border-collapse:collapse;margin-bottom:6px}
+  th,td{padding:5px 6px;border-bottom:1px solid #f0e6dd;text-align:right;vertical-align:top;font-size:.88rem}
+  th{color:#887b74;font-size:.78rem}
+  td input.n{width:100%;box-sizing:border-box}
+  td input.p{width:88px;direction:ltr;text-align:center}
+  .cell{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+  .cell label{margin:0;font-size:.76rem;color:#712714;font-weight:700}
+  small{color:#887b74;display:block;font-size:.74rem}
+  .note{color:#8a6d00;font-size:.85rem}
+  .hint{color:#887b74;font-size:.8rem}
+  #log{white-space:pre-wrap;font-size:.9rem;margin-top:12px}
+  .err{color:#b3261e}.ok{color:#1d7a46}
+</style>
+</head>
+<body>
+<h1>رفع منيو فرع العامرية — 07750556655</h1>
+
+<div class="box login">
+  <b>1) سجّل دخول الأدمن</b>
+  <p class="note">الإيميل والباسورد يُستخدمان للدخول فقط ولا يُحفظان.</p>
+  <input id="email" type="email" value="maad@fa.com" dir="ltr">
+  <input id="pass" type="password" placeholder="الباسورد" dir="ltr">
+</div>
+
+<div class="box">
+  <b>2) فرع واحد فقط</b>
+  <p>العامرية — بغداد / شارع العمل الشعبي / قرب ابراج المرل</p>
+  <label><input type="checkbox" id="sync" checked> احذف الأصناف والأقسام القديمة الزايدة فقط (الجديد ينكتب فوق القديم — بدون تكرار)</label>
+  <p class="hint">ما يمس فرع أبو طيارة ولا الصحة.</p>
+</div>
+
+<div class="box">
+  <b>3) راجع الأصناف والأسعار (بالدينار) — عدّل أي شي قبل الرفع</b>
+  <p class="hint">الأصناف الصفراء محتاجة مراجعة. البيتزا فيها حجمين (وسط/كبير) والزبون يختار وقت الإضافة.</p>
+  <div id="menu"></div>
+</div>
+
+<div class="box">
+  <b>4) ارفع للقاعدة</b><br><br>
+  <button id="go">رفع منيو العامرية</button>
+  <div id="log"></div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import { getFirestore, doc, collection, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+const SITES = window.FIREBASE_SITES || {};
+const SITE_DOC = (SITES.amiriya && SITES.amiriya.doc) || 'family-amiriya';
+const ROOT = ['restaurantSites', SITE_DOC];
+const BRANCH_ID = 'amiriya';
+const BRANCH = {
+  name: 'العامرية', whatsapp: '9647750556655', phone: '07750556655',
+  address: 'بغداد - العامرية - شارع العمل الشعبي - قرب مول العامرية',
+  mapUrl: '', active: true, order: 0
+};
+const STORY = 'من قلب العائلة بدأت الحكاية. في جلسة بسيطة، وسط أحاديثنا الدافئة وضحكاتنا الخفيفة، وُلد حلم صغير: مكان يشبه البيت، بتبكته ودفئه ولطافته. كبر الحلم وصار مطبخنا عائلياً يجمع حوله الأهل والأصدقاء.\n\nنختار أجود المكونات، ونهتم بالتفاصيل من أول تحضير لين آخر تقديم. كل وجبة عندنا هي رسالة، ورسالتها: أهلاً بك بين أهلنا.';
+const SETTINGS = {
+  restaurantName: 'مطعم العائلة — العامرية',
+  tagline: 'الطعم اللي يجمع العائلة',
+  heroBadge: 'أهلاً بكم في فرع العامرية',
+  heroText: 'مشويات، بيتزا، لحم بعجين، نراكيل، عصائر، وافل وكريب — اطلبها توصيل أو سفري.',
+  heroCta: 'شوف المنيو',
+  phoneDisplay: '07750556655',
+  phoneDial: '07750556655',
+  instagram: 'https://www.instagram.com/family.rest_',
+  whatsapp: '9647750556655',
+  aboutTitle: 'قصة المطعم — فرع العامرية',
+  aboutText: STORY + '\n\nفرع ' + BRANCH.name + ' — ' + BRANCH.address + ' — للطلب والاستفسار: ' + BRANCH.phone,
+  currency: 'د.ع',
+  homeBranchId: 'amiriya'
+};
+
+const MENU = [
+  { cat: 'المشويات', icon: 'fa-fire-burner', items: [
+    { name: 'نفر كباب', price: 16000 },
+    { name: 'كباب لحم نص نفر', price: 8000 },
+    { name: 'شيش كباب لحم', price: 4000 },
+    { name: 'تكة لحم النفر', price: 16000 },
+    { name: 'تكة لحم نص نفر', price: 8000 },
+    { name: 'تكة لحم شيش', price: 4000 },
+    { name: 'نص نفر معلاك', price: 8000 },
+    { name: 'شيش معلاك', price: 4000 },
+    { name: 'كباب بقلاوة النفر', price: 14000 },
+    { name: 'كباب بقلاوة نص نفر', price: 7000 },
+    { name: 'كباب دجاج نفر', price: 14000 },
+    { name: 'كباب دجاج نص نفر', price: 7000 },
+    { name: 'شيش كباب دجاج', price: 4000 },
+    { name: 'نفر اجنحة', price: 16000 },
+    { name: 'نص نفر اجنحة', price: 8000 },
+    { name: 'عرائس', price: 8000 },
+    { name: 'دجاج على الفحم', price: 16000 },
+    { name: 'نص دجاج على الفحم', price: 8000 },
+    { name: 'طاووق النفر', price: 16000 },
+    { name: 'طاووق نص نفر', price: 8000 },
+    { name: 'طاووق شيخ', price: 4000 },
+    { name: 'صينية مشكل مع سمك', price: 30000 } ] },
+  { cat: 'البيتزا', icon: 'fa-pizza-slice', items: [
+    { name: 'بيتزا لحم', sizes: [['وسط', 10000], ['كبير', 15000]] },
+    { name: 'بيتزا مشكل', sizes: [['وسط', 10000], ['كبير', 15000]] },
+    { name: 'بيتزا دجاج', sizes: [['وسط', 8000], ['كبير', 12000]] },
+    { name: 'بيتزا بروني', sizes: [['وسط', 8000], ['كبير', 12000]] },
+    { name: 'بيتزا خضار', sizes: [['وسط', 8000], ['كبير', 12000]] } ] },
+  { cat: 'لحم بعجين', icon: 'fa-bowl-food', items: [
+    { name: 'لحم بعجين وسط', price: 2000 },
+    { name: 'لحم بعجين وسط بالجبن', price: 3000 },
+    { name: 'لحم بعجين كبير', price: 4000 },
+    { name: 'لحم بعجين كبير بالجبن', price: 5000 } ] },
+  { cat: 'النراكيل', icon: 'fa-flatbread', items: [
+    { name: 'علك و نعناع', price: 10000 },
+    { name: 'ليمون و نعناع', price: 10000 },
+    { name: 'نعناع', price: 10000 },
+    { name: 'علك', price: 10000 },
+    { name: 'باونتي', price: 10000 },
+    { name: 'تفاحتين', price: 10000 },
+    { name: 'حمضيات', price: 10000 },
+    { name: 'انكليزي', price: 10000 },
+    { name: 'عنب', price: 10000 },
+    { name: 'طبيعي مميز', price: 20000 },
+    { name: 'طبيعي فريش', price: 20000 } ] },
+  { cat: 'العصائر', icon: 'fa-lemon', items: [
+    { name: 'عصير بطيخ', price: 3000 },
+    { name: 'مور و بطيخ', price: 3000 },
+    { name: 'موز و نسلة', price: 3500 },
+    { name: 'عصير برتقال', price: 3000 },
+    { name: 'عصير ليمون و برتقال', price: 3000 },
+    { name: 'عصير فراولة', price: 3000 },
+    { name: 'عصير ليمون و نعناع', price: 3000 },
+    { name: 'عصير رمان', price: 3000 },
+    { name: 'عصير مانجو', price: 3000 },
+    { name: 'عصير اناناس', price: 4000 },
+    { name: 'عصير كيوي و نعناع', price: 3000 },
+    { name: 'كوكتيل', price: 4000 },
+    { name: 'كوكتيل من اختيارك', price: 5000 } ] },
+  { cat: 'مشروبات ساخنة', icon: 'fa-mug-hot', items: [
+    { name: 'اسبريسو', price: 3000 },
+    { name: 'دبل اسبريسو', price: 4000 },
+    { name: 'كابتشينو', price: 3000 },
+    { name: 'شوكلاتة ساخنة', price: 3000 },
+    { name: 'نسكافيه', price: 3000 },
+    { name: 'قهوة بالبندق', price: 3000 },
+    { name: 'قهوة تركية', price: 3000 },
+    { name: 'قهوة عربية', price: 2000 },
+    { name: 'قهوة جكليتية', price: 2000 },
+    { name: 'سحلب', price: 3000 },
+    { name: 'شاي كوبي', price: 1000 },
+    { name: 'شاي نعناع', price: 1000 },
+    { name: 'شاي ليمون', price: 1000 },
+    { name: 'نومي بصرة', price: 1000 },
+    { name: 'شاي حليب', price: 2000 } ] },
+  { cat: 'الوافل', icon: 'fa-cookie-bite', items:
+    ['نوتيلا', 'فواكه', 'اوريو', 'لوتس', 'كلاكسي', 'كيت كات', 'كندر', 'مكس']
+      .map(n => ({ name: 'وافل ' + n, price: 8000 })) },
+  { cat: 'الكريب', icon: 'fa-cookie-bite', items:
+    ['نوتيلا', 'فواكه', 'اوريو', 'لوتس', 'كلاكسي', 'كيت كات', 'كندر', 'مكس']
+      .map(n => ({ name: 'كريب ' + n, price: 8000 })) },
+  { cat: 'السناكات', icon: 'fa-burger', items: [
+    { name: 'بركر لحم', price: 5000 },
+    { name: 'بركر لحم بالجبن', price: 6000 },
+    { name: 'بركر دجاج', price: 4000 },
+    { name: 'زنكر دجاج', price: 5000 },
+    { name: 'سكالوب', price: 5000 },
+    { name: 'فنكر', price: 2000 },
+    { name: 'فنكر بالجبن', price: 3000 } ] },
+  { cat: 'موهيتو', icon: 'fa-martini-glass', items: [
+    { name: 'موهيتو كرز', price: 4000 },
+    { name: 'موهيتو توت', price: 4000 },
+    { name: 'موهيتو فراولة', price: 4000 },
+    { name: 'موهيتو تفاح', price: 4000 },
+    { name: 'موهيتو ركي', price: 4000 },
+    { name: 'مكسيكي', price: 3000 } ] },
+  { cat: 'الآيس كريم', icon: 'fa-ice-cream', items: [
+    { name: 'ايس كريم فواكه', price: 3000 },
+    { name: 'ايس كريم شوكلاتة', price: 3500 },
+    { name: 'ايس كريم نستلة', price: 4000 },
+    { name: 'ايس كريم فانيلا', price: 4000 },
+    { name: 'ايس كريم كرمل', price: 3500 },
+    { name: 'ايس كريم العائلة', price: 5000 } ] },
+  { cat: 'أطباق الفواكه', icon: 'fa-apple-whole', items: [
+    { name: 'صحن فواكه', price: 5000 },
+    { name: 'صحن فواكه VIP', price: 8000 } ] },
+  { cat: 'المشروبات', icon: 'fa-glass-water', items: [
+    { name: 'بيبسي', price: 500 },
+    { name: 'سف اب', price: 500 },
+    { name: 'ميرندا', price: 500 },
+    { name: 'لبن', price: 1000 } ] },
+  { cat: 'السموذي', icon: 'fa-blender', items: [
+    { name: 'سموذي فراولة', price: 3000 },
+    { name: 'سموذي توت', price: 3000 },
+    { name: 'سموذي مور', price: 3000 } ] }
+];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+const num = v => { const n = Number(String(v).replace(/[^\d.]/g, '')); return Number.isFinite(n) ? n : 0; };
+
+function priceCell(item) {
+  if (item.sizes && item.sizes.length) {
+    return '<div class="cell">' + item.sizes.map((s, k) =>
+      '<label>' + esc(s[0]) + ' <input class="p" type="number" min="0" step="50" value="' + s[1] + '" data-s="' + k + '"></label>'
+    ).join('') + '</div>';
+  }
+  return '<input class="p" type="number" min="0" step="50" value="' + (item.price || 0) + '">';
+}
+function extrasCell(item) {
+  if (!item.extras || !item.extras.length) return '<span class="hint">—</span>';
+  return '<div class="cell">' + item.extras.map((s, k) =>
+    '<label>' + esc(s[0]) + ' <input class="p" type="number" min="0" step="50" value="' + s[1] + '" data-x="' + k + '"></label>'
+  ).join('') + '</div>';
+}
+$('menu').innerHTML = MENU.map((c, ci) =>
+  '<h2>' + esc(c.cat) + '</h2><table>'
+  + '<tr><th style="width:34%">الصنف</th><th>الوصف</th><th style="width:24%">السعر / الأحجام</th><th style="width:24%">الإضافات</th></tr>'
+  + c.items.map((it, ii) =>
+    '<tr' + (it.check ? ' style="background:#fff8e1"' : '') + ' data-c="' + ci + '" data-i="' + ii + '">'
+    + '<td><input class="n" value="' + esc(it.name) + '"></td>'
+    + '<td><small>' + esc(it.desc || '') + '</small></td>'
+    + '<td>' + priceCell(it) + '</td>'
+    + '<td>' + extrasCell(it) + '</td></tr>').join('')
+  + '</table>').join('');
+
+// يقرأ الصفوف بعد التعديل اليدوي — يرجع مصفوفة: [رقم القسم] = [الأصناف]
+function readRows() {
+  const cats = MENU.map(() => []);
+  [...document.querySelectorAll('tr[data-c]')].forEach(tr => {
+    const ci = +tr.dataset.c, ii = +tr.dataset.i;
+    const def = MENU[ci].items[ii];
+    const out = { name: tr.querySelector('.n').value.trim(), desc: def.desc || '', image: '', sizes: [], extras: [] };
+    const sizeInputs = [...tr.querySelectorAll('input.p[data-s]')];
+    if (sizeInputs.length) {
+      sizeInputs.forEach(inp => out.sizes.push({ label: def.sizes[+inp.dataset.s][0], price: num(inp.value) }));
+    } else {
+      out.price = num(tr.querySelector('input.p').value);
+    }
+    tr.querySelectorAll('input.p[data-x]').forEach(inp => {
+      out.extras.push({ label: def.extras[+inp.dataset.x][0], price: num(inp.value) });
+    });
+    cats[ci].push(out);
+  });
+  return cats;
+}
+
+const log = (t, cls) => { $('log').innerHTML += '<div class="' + (cls || '') + '">' + t + '</div>'; };
+
+function makeWriter(db) {
+  let batch = writeBatch(db), n = 0;
+  const flush = async () => { if (n) { await batch.commit(); batch = writeBatch(db); n = 0; } };
+  const bump = async () => { if (++n >= 400) await flush(); };
+  return {
+    set: async (ref, data, opts) => { opts ? batch.set(ref, data, opts) : batch.set(ref, data); await bump(); },
+    del: async ref => { batch.delete(ref); await bump(); },
+    flush
+  };
+}
+
+$('go').onclick = async () => {
+  $('log').innerHTML = '';
+  $('go').disabled = true;
+  try {
+    if (!window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey) {
+      throw new Error('ملف firebase-config.js غير موجود بجانب هذه الصفحة. انسخها لمجلد المشروع نفسه (نفس مجلد index.html).');
+    }
+    const app = initializeApp(window.FIREBASE_CONFIG);
+    await signInWithEmailAndPassword(getAuth(app), $('email').value.trim(), $('pass').value);
+    log('تم تسجيل الدخول.');
+    const db = getFirestore(app);
+    const w = makeWriter(db);
+    const bref = ['branches', BRANCH_ID];
+    const rows = readRows();
+    const newCatIds = new Set();
+    const newItemIds = new Set();
+    let count = 0;
+
+    await w.set(doc(db, ...ROOT), { settings: SETTINGS }, { merge: true });
+    await w.set(doc(db, ...ROOT, ...bref), BRANCH, { merge: true });
+    for (const [ci, c] of MENU.entries()) {
+      const catId = BRANCH_ID + '_c' + (ci + 1);
+      newCatIds.add(catId);
+      await w.set(doc(db, ...ROOT, ...bref, 'categories', catId), { name: c.cat, icon: c.icon, order: ci });
+      let ii = 0;
+      for (const r of rows[ci]) {
+        if (!r.name) continue;
+        const itemId = catId + '_i' + (ii + 1);
+        newItemIds.add(itemId);
+        const payload = {
+          categoryId: catId, name: r.name,
+          price: r.sizes.length ? Math.min.apply(null, r.sizes.map(s => s.price)) : (r.price || 0),
+          desc: r.desc, image: r.image, order: ii, available: true
+        };
+        if (r.sizes.length) payload.sizes = r.sizes;
+        if (r.extras.length) payload.extras = r.extras;
+        await w.set(doc(db, ...ROOT, ...bref, 'items', itemId), payload);
+        ii++; count++;
+      }
+    }
+    await w.flush();
+
+    let removed = 0;
+    if ($('sync').checked) {
+      for (const sub of ['items', 'categories']) {
+        const keep = sub === 'items' ? newItemIds : newCatIds;
+        const snap = await getDocs(collection(db, ...ROOT, ...bref, sub));
+        for (const d of snap.docs) {
+          if (keep.has(d.id)) continue;
+          await w.del(d.ref);
+          removed++;
+        }
+      }
+      await w.flush();
+    }
+    log('تم فرع العامرية: ' + MENU.length + ' أقسام و' + count + ' صنف'
+      + (removed ? ' — حُذف ' + removed + ' قديم زايد.' : '.'), 'ok');
+    log('انتهى. حدّث الموقع.', 'ok');
+  } catch (e) {
+    console.error(e);
+    log('فشل: ' + (e.code || e.message), 'err');
+  }
+  $('go').disabled = false;
+};
+</script>
+</body>
+</html>

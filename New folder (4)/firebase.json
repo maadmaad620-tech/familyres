@@ -1,0 +1,45 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**/*.md"
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(html|js)",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
+      },
+      {
+        "source": "**/*.@(png|jpg|jpeg|gif|webp|svg|ico|woff2)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=604800" }
+        ]
+      },
+      {
+        "source": "**/*.html",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+        ]
+      }
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "rewrites": [
+    { "source": "/amiriya", "destination": "/app.html?site=amiriya" },
+    { "source": "/tayyara", "destination": "/app.html?site=tayyara" },
+    { "source": "/seha", "destination": "/app.html?site=seha" },
+    { "source": "/amiriya-admin", "destination": "/admin.html?site=amiriya" },
+    { "source": "/tayyara-admin", "destination": "/admin.html?site=tayyara" },
+    { "source": "/seha-admin", "destination": "/admin.html?site=seha" }
+  ]
+}

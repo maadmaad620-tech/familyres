@@ -1,0 +1,162 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "maad@fa.com";
+    }
+
+    function shortText(v, max) {
+      return v is string && v.size() > 0 && v.size() <= max;
+    }
+
+    function optText(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    function price(v) {
+      return v is number && v >= 0 && v <= 10000000;
+    }
+
+    // خيارات الصنف: أحجام (مفروض واحد) أو إضافات (اختيارية)
+    function optionList(v) {
+      return v is list
+        && v.size() > 0
+        && v.size() <= 10
+        && v.all(o,
+             o.keys().hasOnly(['label', 'price'])
+             && optText(o.label, 60)
+             && price(o.price)
+           );
+    }
+
+    // ---------- Site settings ----------
+    match /restaurantSites/{siteId} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['settings', 'seededAt'])
+        && request.resource.data.settings.keys().hasOnly([
+             'restaurantName', 'tagline', 'heroBadge', 'heroText', 'heroCta',
+             'phoneDisplay', 'phoneDial', 'instagram', 'whatsapp',
+             'aboutTitle', 'aboutText', 'currency', 'homeBranchId'
+           ])
+        && optText(request.resource.data.settings.restaurantName, 120)
+        && optText(request.resource.data.settings.tagline, 200)
+        && optText(request.resource.data.settings.heroBadge, 120)
+        && optText(request.resource.data.settings.heroText, 300)
+        && optText(request.resource.data.settings.heroCta, 60)
+        && optText(request.resource.data.settings.phoneDisplay, 40)
+        && optText(request.resource.data.settings.phoneDial, 40)
+        && optText(request.resource.data.settings.instagram, 300)
+        && optText(request.resource.data.settings.whatsapp, 40)
+        && optText(request.resource.data.settings.aboutTitle, 200)
+        && optText(request.resource.data.settings.aboutText, 2000)
+        && optText(request.resource.data.settings.currency, 20)
+        && optText(request.resource.data.settings.homeBranchId, 100);
+      allow delete: if false;
+
+      // ---------- Branches ----------
+      match /branches/{branchId} {
+        allow read: if true;
+        allow create, update: if isAdmin()
+          && request.resource.data.keys().hasOnly(['name', 'whatsapp', 'address', 'mapUrl', 'phone', 'active', 'order'])
+          && shortText(request.resource.data.name, 120)
+          && optText(request.resource.data.whatsapp, 40)
+          && optText(request.resource.data.address, 400)
+          && optText(request.resource.data.mapUrl, 400)
+          && optText(request.resource.data.phone, 40)
+          && request.resource.data.active is bool
+          && request.resource.data.order is int
+          && request.resource.data.order >= 0;
+        allow delete: if isAdmin();
+
+        // ---------- Categories ----------
+        match /categories/{categoryId} {
+          allow read: if true;
+          allow create, update: if isAdmin()
+            && request.resource.data.keys().hasOnly(['name', 'icon', 'order'])
+            && shortText(request.resource.data.name, 120)
+            && optText(request.resource.data.icon, 80)
+            && request.resource.data.order is int
+            && request.resource.data.order >= 0;
+          allow delete: if isAdmin();
+        }
+
+        // ---------- Menu items (flat, referenced by categoryId) ----------
+        match /items/{itemId} {
+          allow read: if true;
+          allow create, update: if isAdmin()
+            && request.resource.data.keys().hasOnly([
+                 'categoryId', 'name', 'price', 'desc', 'image', 'order', 'available',
+                 'sizes', 'extras', 'featured'
+               ])
+            && shortText(request.resource.data.categoryId, 100)
+            && shortText(request.resource.data.name, 160)
+            && price(request.resource.data.price)
+            && optText(request.resource.data.desc, 600)
+            && optText(request.resource.data.image, 2000)
+            && request.resource.data.order is int
+            && request.resource.data.order >= 0
+            && request.resource.data.available is bool
+            && (!request.resource.data.keys().hasAll(['sizes'])
+                || optionList(request.resource.data.sizes))
+            && (!request.resource.data.keys().hasAll(['extras'])
+                || optionList(request.resource.data.extras))
+            && (!request.resource.data.keys().hasAll(['featured'])
+                || request.resource.data.featured is bool);
+          allow delete: if isAdmin();
+        }
+      }
+
+      // ---------- Home offers ----------
+      match /offers/{offerId} {
+        allow read: if true;
+        allow create, update: if isAdmin()
+          && request.resource.data.keys().hasOnly(['name', 'price', 'desc', 'image', 'order', 'active'])
+          && shortText(request.resource.data.name, 160)
+          && price(request.resource.data.price)
+          && optText(request.resource.data.desc, 600)
+          && optText(request.resource.data.image, 700)
+          && request.resource.data.order is int
+          && request.resource.data.order >= 0
+          && request.resource.data.active is bool;
+        allow delete: if isAdmin();
+      }
+
+      // ---------- Orders: public create, admin-only read/update ----------
+      match /orders/{orderId} {
+        allow create: if request.resource.data.keys().hasOnly([
+              'branchId', 'branchName', 'type', 'name', 'phone',
+              'address', 'items', 'total', 'status', 'createdAt'
+            ])
+          && shortText(request.resource.data.branchId, 100)
+          && optText(request.resource.data.branchName, 120)
+          && request.resource.data.type in ['delivery', 'pickup', 'dinein']
+          && shortText(request.resource.data.name, 120)
+          && shortText(request.resource.data.phone, 30)
+          && optText(request.resource.data.address, 300)
+          && request.resource.data.total is number
+          && request.resource.data.total >= 0
+          && request.resource.data.total <= 10000000
+          && request.resource.data.status == 'new'
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.items is list
+          && request.resource.data.items.size() > 0
+          && request.resource.data.items.size() <= 100
+          && request.resource.data.items.all(i,
+               i.keys().hasOnly(['name', 'price', 'qty'])
+               && optText(i.name, 160)
+               && i.price is number
+               && i.price >= 0
+               && i.qty is int
+               && i.qty > 0
+               && i.qty <= 99
+             );
+
+        allow read, update, delete: if isAdmin();
+      }
+    }
+  }
+}

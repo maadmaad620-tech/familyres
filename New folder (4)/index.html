@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>مطعم العائلة | منيو أبو طيارة والصحة وال عامرية</title>
+  <meta name="description" content="مطعم العائلة — منيوات الفروع: أبو طيارة، الصحة، العامرية. كل فرع له منيوه وصفحته الخاصة.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <style>
+    :root{--ink:#2f201b;--brand:#712714;--accent:#c64920;--orange:#f4a443;--paper:#fffdf9;--soft:#f6eee7;--muted:#887b74;--line:#eee4dc}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:Tajawal,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+    .wrap{max-width:1100px;margin:auto;width:100%;padding:24px 20px 40px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:4px 0 20px}
+    .brand{display:flex;gap:12px;align-items:center;font-weight:900;font-size:1.05rem;text-decoration:none;color:inherit}
+    .brand img{width:52px;height:52px;object-fit:contain;border-radius:50%;border:1px solid var(--line);background:#fff}
+    .eyebrow{color:var(--accent);font-weight:800;font-size:.85rem;margin:0 0 6px}
+    h1{font-size:clamp(1.45rem,4vw,2.25rem);font-weight:900;margin:0 0 8px;line-height:1.3}
+    .lead{color:var(--muted);margin:0 0 24px;max-width:660px;line-height:1.85}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+    .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:12px;transition:transform .2s,box-shadow .2s}
+    .card:hover{transform:translateY(-3px);box-shadow:0 14px 28px rgba(113,39,20,.10)}
+    .card-top{display:flex;align-items:center;gap:12px}
+    .pin{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--soft);color:var(--brand);font-size:1.1rem;flex:0 0 46px}
+    .card h2{font-size:1.14rem;font-weight:900;margin:0}
+    .count{color:var(--accent);font-size:.76rem;font-weight:800}
+    .addr{color:var(--muted);font-size:.84rem;line-height:1.7;margin:0}
+    .cats{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+    .cats li{background:var(--soft);color:var(--brand);border-radius:20px;padding:5px 11px;font-size:.76rem;font-weight:700}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:auto}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:6px;background:var(--brand);color:#fff;text-decoration:none;font-weight:800;font-size:.92rem}
+    .btn.ghost{background:var(--soft);color:var(--brand)}
+    .tel{display:inline-flex;align-items:center;gap:7px;color:var(--brand);font-weight:900;text-decoration:none;direction:ltr;font-size:.9rem}
+    footer{margin-top:30px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:.82rem;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="brand" href="./index.html"><img src="logo.png" alt="شعار المطعم"><span>مطعم العائلة</span></a>
+      <a class="tel" href="tel:07750556655"><i class="fa-solid fa-phone"></i> 07750556655</a>
+    </header>
+
+    <p class="eyebrow">ثلاث فروع — ثلاث منيوهات</p>
+    <h1>اختار الفرع اللي تريد تطلب منه</h1>
+    <p class="lead">كل فرع عنده صفحة ومنيو خاصة فيه، ما تختلط مع غيره. اضغط على الفرع ويفتح منيوه مباشرة، وبعدها تطلب من السلة أو ترسل الطلب بالواتساب.</p>
+
+    <div class="grid">
+
+      <article class="card">
+        <div class="card-top">
+          <span class="pin"><i class="fa-solid fa-location-dot"></i></span>
+          <div><h2>أبو طيارة</h2></div>
+        </div>
+        <p class="addr">الدورة — شارع أبو طيارة — مقابل مطعم تمام</p>
+        <div class="row">
+          <a class="btn" href="./tayyara.html"><i class="fa-solid fa-utensils"></i> منيو أبو طيارة</a>
+          <a class="tel" href="tel:07705257610">07705257610</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-top">
+          <span class="pin"><i class="fa-solid fa-location-dot"></i></span>
+          <div><h2>الصحة</h2></div>
+        </div>
+        <p class="addr">الدورة — شارع الصحة — مجاور الشيف السوري</p>
+        <div class="row">
+
+          <a class="btn" href="./seha.html"><i class="fa-solid fa-utensils"></i> منيو الصحة</a>
+          <a class="tel" href="tel:07747776677">07747776677</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-top">
+          <span class="pin"><i class="fa-solid fa-location-dot"></i></span>
+          <div><h2>العامرية</h2></div>
+        </div>
+        <p class="addr">بغداد — العامرية — شارع العمل الشعبي — قرب مول العامرية</p>
+        <div class="row">
+          <a class="btn" href="./amiriya.html"><i class="fa-solid fa-utensils"></i> منيو العامرية</a>
+          <a class="tel" href="tel:07750556655">07750556655</a>
+        </div>
+      </article>
+
+    </div>
+
+    <footer>
+      <span>© <span id="year"></span> مطعم العائلة — الطعم اللي يجمع العائلة</span>
+      <span>العامرية ٠٧٧٥٠٥٥٦٦٥٥ · أبو طيارة ٠٧٧٠٥٢٥٧٦١٠ · الصحة ٠٧٧٤٧٧٧٦٦٧٧</span>
+    </footer>
+  </div>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
